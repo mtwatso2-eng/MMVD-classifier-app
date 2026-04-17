@@ -10,13 +10,14 @@ import torchvision.models as models
 from torchvision import transforms
 
 IMAGE_SIZE = 64
-MODEL_PATH = Path(__file__).parent / "model_0.13.pth"
+MODEL_PATH = Path(__file__).parent / "model_0.65.pth"
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 CLASS_LABELS = {0: "B1", 1: "B2"}
 
 
 def default_threshold_from_model_name(model_path: Path) -> float:
-    match = re.search(r"(\d*\.?\d+)", model_path.stem)
+    # Match trailing numeric suffix (e.g. model_0.65 -> 0.65, not just the first digit).
+    match = re.search(r"(\d+\.\d+|\d+)$", model_path.stem)
     if not match:
         return 0.5
     threshold = float(match.group(1))

@@ -11,7 +11,7 @@ This project is a Python Shiny web app for radiograph inference using a trained 
   - threshold used
   - predicted class label (`B1` or `B2`)
 - Includes an **Advanced settings** section with a classification threshold slider (`0.0` to `1.0`)
-- Defaults the threshold to the value parsed from the model filename (e.g. `model_0.13.pth` -> `0.13`)
+- Defaults the threshold to the numeric suffix in the model filename (e.g. `model_0.65.pth` -> `0.65`)
 - Applies simple conditional preprocessing:
   - detects dark backgrounds using border intensity
   - inverts image only when background appears dark
@@ -20,7 +20,7 @@ This project is a Python Shiny web app for radiograph inference using a trained 
 ## Requirements
 
 - Python 3.10+ recommended
-- A model checkpoint file named `model_0.13.pth` in the project root (same folder as `app.py`)
+- A model checkpoint file named `model_0.65.pth` in the project root (same folder as `app.py`)
 
 ## Run Locally
 
