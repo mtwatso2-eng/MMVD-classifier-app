@@ -26,6 +26,26 @@ def default_threshold_from_model_name(model_path: Path) -> float:
 DEFAULT_THRESHOLD = default_threshold_from_model_name(MODEL_PATH)
 
 
+def has_dark_background(image: Image.Image, threshold: float = 90.0) -> bool:
+    gray = image.convert("L")
+    arr = torch.tensor(list(gray.getdata()), dtype=torch.float32).reshape(gray.height, gray.width)
+
+    # Use border pixels as a proxy for background brightness.
+    top = arr[0, :]
+    bottom = arr[-1, :]
+    left = arr[:, 0]
+    right = arr[:, -1]
+    border_mean = torch.cat([top, bottom, left, right]).mean().item()
+    return border_mean < threshold
+
+
+def preprocess_image(image: Image.Image) -> torch.Tensor:
+    image_rgb = image.convert("RGB")
+    if has_dark_background(image_rgb):
+        image_rgb = ImageOps.invert(image_rgb)
+    return inference_transform(image_rgb)
+
+
 def build_model() -> nn.Module:
     model = models.resnet18(weights=None)
     model.fc = nn.Linear(model.fc.in_features, 2)
@@ -39,7 +59,6 @@ def build_model() -> nn.Module:
 inference_transform = transforms.Compose(
     [
         transforms.Resize((IMAGE_SIZE, IMAGE_SIZE)),
-        transforms.Lambda(lambda img: ImageOps.invert(img.convert("RGB"))),
         transforms.ToTensor(),
     ]
 )
@@ -80,7 +99,7 @@ def server(input, output, session):
             file_name = file_info["name"]
             try:
                 image = Image.open(file_path)
-                tensor = inference_transform(image).unsqueeze(0).to(DEVICE)
+                tensor = preprocess_image(image).unsqueeze(0).to(DEVICE)
                 with torch.no_grad():
                     outputs = model(tensor)
                     probs = torch.softmax(outputs, dim=1)[0]
