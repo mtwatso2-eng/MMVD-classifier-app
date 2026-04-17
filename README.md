@@ -1,89 +1,51 @@
-# Minimal Shiny App
+# MMVD Classifier App
 
-This is a minimal Shiny app that displays an interactive histogram of random numbers. Users can adjust the number of bins using a slider.
+This project is a Python Shiny web app for radiograph inference using a trained ResNet18 binary classifier.
 
-## Running Locally
+## What the App Does
 
-1. Create a virtual environment (recommended):
+- Accepts one or more radiograph images (`png`, `jpg`, `jpeg`, `bmp`, `tif`, `tiff`)
+- Runs model inference and outputs:
+  - file name
+  - positive-class probability
+  - threshold used
+  - predicted class label (`B1` or `B2`)
+- Includes an **Advanced settings** section with a classification threshold slider (`0.0` to `1.0`)
+- Defaults the threshold to the value parsed from the model filename (e.g. `model_0.13.pth` -> `0.13`)
+- Applies simple conditional preprocessing:
+  - detects dark backgrounds using border intensity
+  - inverts image only when background appears dark
+- Allows downloading the results table as a CSV file
+
+## Requirements
+
+- Python 3.10+ recommended
+- A model checkpoint file named `model_0.13.pth` in the project root (same folder as `app.py`)
+
+## Run Locally
+
+1. (Optional) Create and activate a virtual environment:
+
 ```bash
 python -m venv venv
-source venv/bin/activate  # On Windows, use: venv\Scripts\activate
+source venv/bin/activate
 ```
 
 2. Install dependencies:
+
 ```bash
 pip install -r requirements.txt
 ```
 
-3. Run the app:
+3. Start the app:
+
 ```bash
-shiny run app.py
+python -m shiny run --reload app.py
 ```
 
-The app will be available at http://localhost:8000
-
-## Deploying the App
-
-### Option 1: Deploy to Shinyapps.io (Recommended for beginners)
-
-1. Install the `rsconnect` package:
-```bash
-pip install rsconnect-python
-```
-
-2. Sign up for a free account at [shinyapps.io](https://www.shinyapps.io)
-
-3. Configure your account:
-```bash
-rsconnect add-account shinyapps.io
-```
-
-4. Deploy the app:
-```bash
-rsconnect deploy shiny .
-```
-
-### Option 2: Deploy to a Cloud Platform
-
-#### Heroku
-1. Create a `Procfile`:
-```
-web: shiny run app.py --host 0.0.0.0 --port $PORT
-```
-
-2. Create a `runtime.txt`:
-```
-python-3.9.16
-```
-
-3. Deploy using Heroku CLI:
-```bash
-heroku create your-app-name
-git add .
-git commit -m "Initial commit"
-git push heroku main
-```
-
-#### Google Cloud Run
-1. Create a `Dockerfile`:
-```dockerfile
-FROM python:3.9-slim
-
-WORKDIR /app
-COPY requirements.txt .
-RUN pip install -r requirements.txt
-COPY . .
-
-CMD ["shiny", "run", "app.py", "--host", "0.0.0.0", "--port", "8080"]
-```
-
-2. Build and deploy:
-```bash
-gcloud builds submit --tag gcr.io/YOUR_PROJECT_ID/shiny-app
-gcloud run deploy --image gcr.io/YOUR_PROJECT_ID/shiny-app --platform managed
-```
+4. Open the local URL shown in terminal (typically `http://127.0.0.1:8000`).
 
 ## Notes
-- The app uses port 8000 by default when running locally
-- For production deployment, make sure to set appropriate environment variables and security measures
-- Consider adding error handling and logging for production use 
+
+- If the model file is missing, the app will show a checkpoint missing message.
+- CSV export contains the same columns shown in the results table.
